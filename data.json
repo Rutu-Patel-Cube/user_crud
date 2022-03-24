@@ -1,0 +1,12 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "test",
+      "surname": "user",
+      "email": "test.com",
+      "phone": 12345,
+      "active": true
+    }
+  ]
+}
