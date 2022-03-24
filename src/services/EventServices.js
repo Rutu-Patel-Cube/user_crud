@@ -13,4 +13,7 @@ export default {
     getUsers() {
         return apiClient.get('users')
     },
+    addUser(userToAdd) {
+        return apiClient.post('users', userToAdd);
+    },
 }
