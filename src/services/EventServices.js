@@ -16,4 +16,7 @@ export default {
     addUser(userToAdd) {
         return apiClient.post('users', userToAdd);
     },
+    deleteUser(deleteId) {
+        return apiClient.delete(`users/${deleteId}`);
+    },
 }
