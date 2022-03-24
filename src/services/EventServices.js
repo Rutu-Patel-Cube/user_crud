@@ -19,4 +19,10 @@ export default {
     deleteUser(deleteId) {
         return apiClient.delete(`users/${deleteId}`);
     },
+    getUser(userId) {
+        return apiClient.get('users/' + userId)
+    },
+    updateUser(userId, userToUpdate) {
+        return apiClient.patch('users/' + userId, userToUpdate)
+    },
 }

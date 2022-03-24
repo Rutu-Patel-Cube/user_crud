@@ -1,5 +1,19 @@
 <template>
   <v-container fluid>
+    <v-snackbar
+      v-model="snackbar"
+      timeout="2000"
+      :color="snackbarType"
+      top
+      centered
+    >
+      {{ snackbarMessage }}
+      <template v-slot:action="{ attrs }">
+        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
+          <v-icon>fa fa-close</v-icon>
+        </v-btn>
+      </template>
+    </v-snackbar>
     <v-data-table
       :headers="headers"
       :items="users"
@@ -23,55 +37,65 @@
               <v-card-title>
                 <span class="text-h5">Add User</span>
               </v-card-title>
+              <v-form @submit.prevent="addUser" v-model="valid" ref="form">
+                <v-card-text>
+                  <v-container>
+                    <v-row>
+                      <v-col cols="12" sm="6" md="6">
+                        <v-text-field
+                          :rules="[rules.required, rules.counter, rules.name]"
+                          v-model="editedUser.name"
+                          label="User name"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6">
+                        <v-text-field
+                          :rules="[rules.required, rules.counter, rules.name]"
+                          v-model="editedUser.surname"
+                          label="Surname"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6">
+                        <v-text-field
+                          :rules="[rules.required, rules.email]"
+                          v-model="editedUser.email"
+                          label="Email"
+                          type="email"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6">
+                        <v-text-field
+                          :rules="[rules.required, rules.phone]"
+                          v-model="editedUser.phone"
+                          label="Phone number"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6">
+                        <v-switch
+                          v-model="editedUser.active"
+                          label="Active"
+                          inset
+                        ></v-switch>
+                      </v-col>
+                    </v-row>
+                  </v-container>
+                </v-card-text>
 
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="6">
-                      <v-text-field
-                        v-model="editedUser.name"
-                        label="User name"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6">
-                      <v-text-field
-                        v-model="editedUser.surname"
-                        label="Surname"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6">
-                      <v-text-field
-                        v-model="editedUser.email"
-                        label="Email"
-                        type="email"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6">
-                      <v-text-field
-                        v-model="editedUser.phone"
-                        label="Phone number"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6">
-                      <v-switch
-                        v-model="editedUser.active"
-                        label="Active"
-                        inset
-                      ></v-switch>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="close">
-                  Cancel
-                </v-btn>
-                <v-btn color="blue darken-1" text @click="addUser">
-                  Save
-                </v-btn>
-              </v-card-actions>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="close">
+                    Cancel
+                  </v-btn>
+                  <v-btn
+                    color="blue darken-1"
+                    text
+                    type="submit"
+                    :disabled="!valid"
+                  >
+                    Save
+                  </v-btn>
+                </v-card-actions>
+              </v-form>
             </v-card>
           </v-dialog>
           <v-dialog v-model="dialogDelete" max-width="500px">
@@ -97,7 +121,7 @@
         <v-switch v-model="item.active" inset></v-switch>
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-icon small class="mr-2"> mdi-pencil </v-icon>
+        <v-icon small class="mr-2" @click="editUser(item)"> mdi-pencil </v-icon>
         <v-icon small @click="deleteUser(item)"> mdi-delete </v-icon>
       </template>
     </v-data-table>
@@ -108,9 +132,14 @@
 import EventServices from "@/services/EventServices.js";
 export default {
   data: () => ({
+    valid: false,
     loading: false,
     dialog: false,
     dialogDelete: false,
+    timeout: 5000,
+    snackbar: false,
+    snackbarMessage: "",
+    snackbarType: "",
     headers: [
       {
         text: "Name",
@@ -140,6 +169,22 @@ export default {
       phone: "",
       active: "",
     },
+    rules: {
+      required: (value) => !!value || "Required.",
+      counter: (value) => (value && value.length >= 3) || "Min 3 characters",
+      email: (value) => {
+        const pattern = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+        return pattern.test(value) || "Invalid e-mail.";
+      },
+      phone: (value) => {
+        const pattern = /^\d{10}$/;
+        return pattern.test(value) || "Invalid phone number.";
+      },
+      name: (value) => {
+        const pattern = /[a-zA-Z][a-zA-Z ]+[a-zA-Z]$/;
+        return pattern.test(value) || "Invalid name.";
+      },
+    },
   }),
   watch: {
     dialog(val) {
@@ -156,10 +201,12 @@ export default {
 
   methods: {
     getUsers() {
+      this.loading = true;
       EventServices.getUsers().then(({ data }) => {
         if (data) {
           console.log("getUsers--", data);
           this.users = data;
+          this.loading = false;
         }
       });
     },
@@ -174,12 +221,16 @@ export default {
       EventServices.deleteUser(deleteId).then(() => {
         this.users.splice(this.editedIndex, 1);
         this.closeDelete();
+        this.snackbarType = "success";
+        this.snackbarMessage = "User Deleted Successfully";
+        this.snackbar = true;
       });
     },
 
     close() {
       this.dialog = false;
       this.editedUser = Object.assign({}, this.defaultUser);
+      this.$refs.form.reset();
     },
 
     closeDelete() {
@@ -192,9 +243,18 @@ export default {
       EventServices.addUser(this.editedUser).then(({ data }) => {
         if (data) {
           console.log("addUser--", data);
-          this.users.push(this.editedUser);
+          this.users.push(data);
           this.close();
+          this.snackbarType = "success";
+          this.snackbarMessage = "User Added Successfully";
+          this.snackbar = true;
         }
+      });
+    },
+    editUser(item) {
+      this.$router.push({
+        name: "UserUpdate",
+        params: { id: item.id },
       });
     },
   },

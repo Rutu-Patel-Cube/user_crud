@@ -1,12 +1,12 @@
 {
   "users": [
     {
-      "id": 1,
       "name": "test",
       "surname": "user",
-      "email": "test.com",
-      "phone": 12345,
-      "active": true
+      "email": "test@test.com",
+      "phone": "9999999001",
+      "active": true,
+      "id": 1
     }
   ]
 }

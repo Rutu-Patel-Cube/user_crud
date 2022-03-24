@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <v-navigation-drawer v-model="drawer" app width="200">
+      <h4 class="text-uppercase mb-n8 mt-5 ml-5">User CRUD</h4>
       <v-list dense>
         <v-list-item class="px-2 text-center"> </v-list-item>
         <v-divider></v-divider>
